@@ -7,6 +7,6 @@ import org.apache.mesos.elasticsearch.scheduler.configuration.ExecutorEnvironmen
  */
 public class Environment {
     public String getJavaHeap() {
-        return System.getenv().get(ExecutorEnvironmentalVariables.JAVA_OPTS);
+        return System.getenv().get(ExecutorEnvironmentalVariables.ES_JAVA_OPTS);
     }
 }

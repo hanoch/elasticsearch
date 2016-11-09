@@ -31,7 +31,7 @@ public class Main {
     }
 
     public void run(String[] args) {
-        checkEnv();
+        //checkEnv();
 
         configuration = new Configuration(args);
 
