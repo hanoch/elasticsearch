@@ -306,7 +306,7 @@ public class Configuration {
             InetSocketAddress transportAddress = clusterState.getGuiTaskList().get(taskId).getTransportAddress();
             hostAddress = NetworkUtils.addressToString(transportAddress, getIsUseIpAddress()).replace("http://", "");
         }
-        addIfNotEmpty(args, "-Edefault.discovery.zen.ping.unicast.hosts", hostAddress);
+        //addIfNotEmpty(args, "-Edefault.discovery.zen.ping.unicast.hosts", hostAddress);
         args.add("-Edefault.http.port=" + discoveryInfo.getPorts().getPorts(Discovery.CLIENT_PORT_INDEX).getNumber());
         args.add("-Edefault.transport.tcp.port=" + discoveryInfo.getPorts().getPorts(Discovery.TRANSPORT_PORT_INDEX).getNumber());
         args.add("-Edefault.cluster.name=" + getElasticsearchClusterName());
@@ -324,15 +324,15 @@ public class Configuration {
             args.add("-Epath.data=" + CONTAINER_PATH_DATA); // Cannot be overidden
         }
         //args.add("-Edefault.bootstrap.mlockall=true");
-        //args.add("-Edefault.network.bind_host=0.0.0.0");
+        args.add("-Edefault.network.bind_host=0.0.0.0");
         //args.add("-Edefault.network.publish_host=_non_loopback:ipv4_");
-        //args.add("-Edefault.gateway.recover_after_nodes=1");
-        //args.add("-Edefault.gateway.expected_nodes=1");
-        //args.add("-Edefault.indices.recovery.max_bytes_per_sec=100mb");
-        //args.add("-Edefault.discovery.type=zen");
-        //args.add("-Edefault.discovery.zen.fd.ping_timeout=30s");
-        //args.add("-Edefault.discovery.zen.fd.ping_interval=1s");
-        //args.add("-Edefault.discovery.zen.fd.ping_retries=30");
+        args.add("-Edefault.gateway.recover_after_nodes=1");
+        args.add("-Edefault.gateway.expected_nodes=1");
+        args.add("-Edefault.indices.recovery.max_bytes_per_sec=100mb");
+        args.add("-Edefault.discovery.type=zen");
+        args.add("-Edefault.discovery.zen.fd.ping_timeout=30s");
+        args.add("-Edefault.discovery.zen.fd.ping_interval=1s");
+        args.add("-Edefault.discovery.zen.fd.ping_retries=30");
         //args.add("-Edefault.discovery.zen.ping.multicast.enabled=false");
 
         return args;
