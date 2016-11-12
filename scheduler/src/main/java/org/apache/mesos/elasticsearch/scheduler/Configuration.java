@@ -2,6 +2,7 @@ package org.apache.mesos.elasticsearch.scheduler;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.mesos.Protos;
 import org.apache.mesos.elasticsearch.common.Discovery;
@@ -300,21 +301,34 @@ public class Configuration {
         List<String> args = new ArrayList<>();
         List<Protos.TaskInfo> taskList = clusterState.getTaskList();
         String hostAddress = "";
+        String hostIP = "";
+        String hostName = "";
         if (taskList.size() > 0) {
             Protos.TaskInfo taskInfo = taskList.get(0);
             String taskId = taskInfo.getTaskId().getValue();
             InetSocketAddress transportAddress = clusterState.getGuiTaskList().get(taskId).getTransportAddress();
+            LOGGER.debug("hk - esArguments: " + transportAddress);
             hostAddress = NetworkUtils.addressToString(transportAddress, getIsUseIpAddress()).replace("http://", "");
+            hostIP = transportAddress.getAddress().getHostAddress();
+            hostName = transportAddress.getAddress().getHostName();
+            LOGGER.debug("hk - default.discovery.zen.ping.unicast.hosts hostAddress: " + hostAddress);
+            LOGGER.debug("hk - default.discovery.zen.ping.unicast.hosts IP         : " + hostIP);
+            LOGGER.debug("hk - default.discovery.zen.ping.unicast.hosts Host Name  : " + hostName);
         }
-        //addIfNotEmpty(args, "-Edefault.discovery.zen.ping.unicast.hosts", hostAddress);
+        addIfNotEmpty(args, "-Edefault.discovery.zen.ping.unicast.hosts", hostIP);
+
+        //args.add("-Edefault.network.host=0.0.0.0");
+        args.add("-Edefault.network.host=_eth0:ipv4_");
+        args.add("-Edefault.network.publish_host=_eth0:ipv4_");
+        args.add("-Edefault.http.cors.enabled=true");
+        args.add("-Edefault.http.cors.allow-origin=/.*/");
+
         args.add("-Edefault.http.port=" + discoveryInfo.getPorts().getPorts(Discovery.CLIENT_PORT_INDEX).getNumber());
         args.add("-Edefault.transport.tcp.port=" + discoveryInfo.getPorts().getPorts(Discovery.TRANSPORT_PORT_INDEX).getNumber());
         args.add("-Edefault.cluster.name=" + getElasticsearchClusterName());
         args.add("-Edefault.node.master=true");
         args.add("-Edefault.node.data=true");
-        //args.add("-Edefault.node.local=false");
-        //args.add("-Edefault.index.number_of_replicas=0");
-        //args.add("-Edefault.index.auto_expand_replicas=0-all");
+
         if (!isFrameworkUseDocker()) {
             String taskSpecificDataDir = taskSpecificHostDir(slaveID);
             args.add("-Epath.home=" + HOST_PATH_HOME); // Cannot be overidden
@@ -323,9 +337,8 @@ public class Configuration {
         } else {
             args.add("-Epath.data=" + CONTAINER_PATH_DATA); // Cannot be overidden
         }
-        //args.add("-Edefault.bootstrap.mlockall=true");
+
         args.add("-Edefault.network.bind_host=0.0.0.0");
-        //args.add("-Edefault.network.publish_host=_non_loopback:ipv4_");
         args.add("-Edefault.gateway.recover_after_nodes=1");
         args.add("-Edefault.gateway.expected_nodes=1");
         args.add("-Edefault.indices.recovery.max_bytes_per_sec=100mb");
@@ -333,7 +346,13 @@ public class Configuration {
         args.add("-Edefault.discovery.zen.fd.ping_timeout=30s");
         args.add("-Edefault.discovery.zen.fd.ping_interval=1s");
         args.add("-Edefault.discovery.zen.fd.ping_retries=30");
-        //args.add("-Edefault.discovery.zen.ping.multicast.enabled=false");
+
+        // no longer working with es 5.0
+        //args.add("-Edefault.node.local=false");
+        //args.add("-Edefault.index.number_of_replicas=0");
+        //args.add("-Edefault.index.auto_expand_replicas=0-all");
+        //args.add("-Edefault.bootstrap.mlockall=true");
+        //args.add("-Edefault.discovery.zen.ping.multicast.enabled=false");  // this is already the default behavior
 
         return args;
     }
@@ -343,8 +362,11 @@ public class Configuration {
     }
 
     private void addIfNotEmpty(List<String> args, String key, String value) {
-        if (!value.isEmpty()) {
-            args.addAll(asList(key, value));
+        if (StringUtils.isNoneBlank(value)) {
+            LOGGER.debug("hk - esArg is NOT empty: " + key + " --- " + value);
+            args.add(key + "=" + value);
+        } else {
+            LOGGER.debug("hk - esArg is empty: " + key + " --- " + value);
         }
     }
 
