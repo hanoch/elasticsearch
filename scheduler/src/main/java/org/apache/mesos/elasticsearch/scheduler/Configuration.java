@@ -288,13 +288,19 @@ public class Configuration {
         String folders = getDataDir() + " " + HOST_SANDBOX;
         String mkdir = "mkdir -p " + folders + "; ";
         String chown = "chown -R nobody " + folders + "; ";
-        return mkdir +
+        String ram = Configuration.ELASTICSEARCH_RAM;
+        String command = mkdir +
                 chown +
                 " su -s /bin/sh -c \""
+                + "ES_JAVA_OPTS=\"-Xms" + ram + "m" + "-Xmx" + ram + "m"
+                + "\" "
                 + Configuration.ES_BINARY
                 + " "
                 + arguments.stream().collect(Collectors.joining(" "))
                 + "\" nobody";
+
+        LOGGER.debug("hk - es native command: " + command);
+        return command;
     }
 
     public List<String> esArguments(ClusterState clusterState, Protos.DiscoveryInfo discoveryInfo, Protos.SlaveID slaveID) {
